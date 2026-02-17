@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cumberland</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app" aria-label="Proofreading application">
+      <header class="topbar">
+        <p class="brand-kicker">Nashville.gov Support Team</p>
+        <h1>Cumberland</h1>
+        <p class="brand-subtitle">Usability-first text review for consistent Nashville.gov publishing style.</p>
+      </header>
+
+      <section class="workspace" aria-label="Proofreading workspace">
+        <div class="editor-pane">
+          <label for="sourceText" class="pane-title">Source Text</label>
+          <textarea
+            id="sourceText"
+            spellcheck="false"
+            placeholder="Paste text here, then click Scan Text."
+          ></textarea>
+
+          <div class="actions-row">
+            <button id="scanBtn" type="button">Scan Text</button>
+            <button id="copyBtn" type="button">Copy Revised Text</button>
+            <button id="resetBtn" type="button">Reset Review</button>
+          </div>
+        </div>
+
+        <aside class="issues-pane" aria-label="Detected issues">
+          <div class="issues-header">
+            <h2>Fix Queue</h2>
+            <p id="issueSummary">No scan yet.</p>
+            <p id="actionNotice" class="action-notice" aria-live="polite"></p>
+          </div>
+
+          <div class="legend" aria-label="Severity legend">
+            <span class="chip definite">Auto-fix Available</span>
+            <span class="chip possible">Needs Manual Review</span>
+          </div>
+
+          <ul id="issuesList" class="issues-list"></ul>
+        </aside>
+      </section>
+    </main>
+
+    <template id="issueItemTemplate">
+      <li class="issue-item">
+        <div class="issue-main">
+          <p class="issue-title"></p>
+          <p class="issue-context"></p>
+          <p class="issue-message"></p>
+        </div>
+        <div class="issue-controls"></div>
+      </li>
+    </template>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
