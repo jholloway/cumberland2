@@ -111,12 +111,89 @@ const RULES = [
     title: "Trailing whitespace",
     severity: DEFINITE,
     run(text) {
-      return matchAll(text, /[ \t]+(?=\r?\n|$)/g).map((m) => ({
+      return matchAll(text, /[^\S\r\n]+(?=\r?\n|$)/g).map((m) => ({
         start: m.index,
         end: m.index + m[0].length,
         message: "Remove trailing spaces at the end of lines.",
         replacement: "",
       }));
+    },
+  },
+  {
+    id: "trailing-blank-lines-eof",
+    title: "Trailing blank lines at end",
+    severity: DEFINITE,
+    run(text) {
+      const match = text.match(/(?:\r?\n[^\S\r\n]*)+$/);
+      if (!match || match.index === undefined) {
+        return [];
+      }
+      return [
+        {
+          start: match.index,
+          end: text.length,
+          message: "Remove blank lines at the end of the text.",
+          replacement: "",
+        },
+      ];
+    },
+  },
+  {
+    id: "missing-blank-line-between-text-lines",
+    title: "Missing blank line between text lines",
+    severity: DEFINITE,
+    run(text) {
+      const results = [];
+      for (const m of matchAll(text, /\r?\n/g)) {
+        const newlineStart = m.index;
+        const newlineEnd = newlineStart + m[0].length;
+
+        const prevLineStart = text.lastIndexOf("\n", newlineStart - 1) + 1;
+        const prevLine = text.slice(prevLineStart, newlineStart).replace(/\r/g, "");
+        if (!/\S/.test(prevLine)) {
+          continue;
+        }
+
+        const nextLineBreak = text.indexOf("\n", newlineEnd);
+        const nextLineEnd = nextLineBreak === -1 ? text.length : nextLineBreak;
+        const nextLine = text.slice(newlineEnd, nextLineEnd).replace(/\r/g, "");
+        if (!/\S/.test(nextLine)) {
+          continue;
+        }
+
+        results.push({
+          start: newlineStart,
+          end: newlineEnd,
+          message: "Insert a blank line between consecutive text lines.",
+          replacement: `${m[0]}${m[0]}`,
+        });
+      }
+      return results;
+    },
+  },
+  {
+    id: "extra-blank-lines-between-text-lines",
+    title: "Extra blank lines between text lines",
+    severity: DEFINITE,
+    run(text) {
+      const results = [];
+      for (const m of matchAll(text, /(?:\r?\n[^\S\r\n]*){3,}(?=[^\S\r\n]*\S)/g)) {
+        const prevLineStart = text.lastIndexOf("\n", m.index - 1) + 1;
+        const prevLine = text.slice(prevLineStart, m.index).replace(/\r/g, "");
+        if (!/\S/.test(prevLine)) {
+          continue;
+        }
+
+        const newlineTokenMatch = m[0].match(/\r?\n/);
+        const newlineToken = newlineTokenMatch ? newlineTokenMatch[0] : "\n";
+        results.push({
+          start: m.index,
+          end: m.index + m[0].length,
+          message: "Leave only a single blank line between text lines.",
+          replacement: `${newlineToken}${newlineToken}`,
+        });
+      }
+      return results;
     },
   },
   {
@@ -594,6 +671,12 @@ function shortHelperText(issue) {
       return 'Use "and".';
     case "trailing-whitespace-line":
       return "Remove trailing spaces.";
+    case "trailing-blank-lines-eof":
+      return "Remove blank lines at end.";
+    case "missing-blank-line-between-text-lines":
+      return "Insert one blank line.";
+    case "extra-blank-lines-between-text-lines":
+      return "Keep only one blank line.";
     case "leading-whitespace-line":
       return "Review/remove line indentation.";
     case "space-before-punctuation":
